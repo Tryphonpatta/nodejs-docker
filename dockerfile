@@ -69,6 +69,8 @@ FROM base AS production
 # Set working directory
 WORKDIR /app
 
+RUN apk add --no-cache curl
+
 # Create non-root user for security
 USER nodejs
 
@@ -78,6 +80,8 @@ USER nodejs
 #     NPM_CONFIG_LOGLEVEL=silent
 
 # Copy production dependencies from deps stage
+
+
 COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=deps --chown=nodejs:nodejs /app/package*.json ./
 # Copy built application from build stage
@@ -88,6 +92,9 @@ USER nodejs
 
 # Expose port
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3\
+	CMD curl -f http://localhost:3000/health || exit 1
 
 # Start production server
 CMD ["node", "dist/index.js"]
